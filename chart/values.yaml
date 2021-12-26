@@ -1,0 +1,147 @@
+replicaCount:
+  min: 1
+  max: 10
+
+autoScaling:
+  enabled: false
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: ocr.local
+      paths:
+      - path: /
+        backend:
+          serviceName: ocr.local
+          servicePort: 80
+  tls: []
+  #  - secretName: ocr-tls
+  #    hosts:
+  #      - ocr.local
+
+pipeline_agent:
+  image:
+    name: aryazanov/pipeline-agent
+    tag: null # @required
+    containerRegister: docker.io
+  imageConfig:
+    pullPolicy: Always
+  env:
+    - name: PIPELINE_AGENT__NAME
+      value: "ocr"
+    - name: PIPELINE_AGENT__EXECUTORS__0__NAME
+      value: "wget"
+    - name: PIPELINE_AGENT__EXECUTORS__0__TARGET
+      value: "127.0.0.1:50051"
+    - name: PIPELINE_AGENT__EXECUTORS__1__NAME
+      value: "tesseract"
+    - name: PIPELINE_AGENT__EXECUTORS__1__TARGET
+      value: "127.0.0.1:50052"
+    - name: PIPELINE_AGENT__EXECUTORS__2__NAME
+      value: "mc"
+    - name: PIPELINE_AGENT__EXECUTORS__2__TARGET
+      value: "127.0.0.1:50053"
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 200m
+      memory: 128Mi
+
+executor_wget:
+  image:
+    name: aryazanov/ocr-wget
+    tag: null # @required
+    containerRegister: docker.io
+  imageConfig:
+    pullPolicy: Always
+  env:
+    - name: COMMAND_EXECUTOR_NAME
+      value: "wget"
+    - name: COMMAND_EXECUTOR_SERVER_GRPC_PORT
+      value: ":50051"
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 200m
+      memory: 128Mi
+
+executor_tesseract:
+  image:
+    name: aryazanov/ocr-tesseract
+    tag: null # @required
+    containerRegister: docker.io
+  imageConfig:
+    pullPolicy: Always
+  env:
+    - name: COMMAND_EXECUTOR_NAME
+      value: "tesseract"
+    - name: COMMAND_EXECUTOR_SERVER_GRPC_PORT
+      value: ":50052"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+executor_mc:
+  image:
+    name: aryazanov/ocr-mc
+    tag: null # @required
+    containerRegister: docker.io
+  imageConfig:
+    pullPolicy: Always
+  env:
+    - name: COMMAND_EXECUTOR_NAME
+      value: "mc"
+    - name: COMMAND_EXECUTOR_SERVER_GRPC_PORT
+      value: ":50053"
+  resources:
+    limits:
+      cpu: 150m
+      memory: 256Mi
+    requests:
+      cpu: 125m
+      memory: 128Mi
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 80
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+resourceQuota:
+  enabled: false
+  requests:
+    cpu: "1"
+    memory: 1Gi
+  limits:
+    cpu: "4"
+    memory: 4Gi
+
+prometheus:
+  host: pipeline-manager.prometheus:9090
+
+minio:
+  enabled: true
+  accessKey: accessKeyOCR
+  secretKey: secretKeyOCR
+  nodeSelector:
+    kubernetes.io/os: linux
+  resources:
+    requests:
+      memory: 200Mi
+  persistence:
+    enabled: false
+    size: 200Mi

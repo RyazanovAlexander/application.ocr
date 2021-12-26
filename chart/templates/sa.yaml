@@ -1,0 +1,20 @@
+{{- if .Values.autoScaling.enabled }}
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "ocr.fullname" . }}
+spec:
+  scaleTargetRef:
+    deploymentName: {{ include "ocr.fullname" . }}
+  minReplicaCount: {{ .Values.replicaCount.min }}
+  maxReplicaCount: {{ .Values.replicaCount.max }}
+  pollingInterval: 1
+  cooldownPeriod: 30
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: {{ .Values.prometheus.host }}
+      metricName: server_scheduler_queue_length
+      threshold: '5'
+      query: server_scheduler_queue_length{worker="{{ .Chart.Name }}",namespace="{{ .Release.Namespace }}"}
+{{- end }}

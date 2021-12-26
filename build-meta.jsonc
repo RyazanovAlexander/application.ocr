@@ -1,0 +1,8 @@
+{
+    "command-executor-tag": "0.1.0",
+    "command-executor-alpine-tag": "0.1.0-alpine",
+    "pipeline-agent-tag": "0.1.0",
+    "executor-minio-client-tag": "1.0.0",
+    "executor-tesseract-ocr-tag": "1.0.0",
+    "executor-wget-tag": "1.0.0"
+}

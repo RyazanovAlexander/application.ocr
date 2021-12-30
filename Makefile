@@ -10,6 +10,7 @@ DRNAME ?= docker.io/aryazanov
 
 # example
 TMPFOLDER ?= ./tmp
+PROFILE   ?= ocr
 
 # ------------------------------------------------------------------------------
 #  init
@@ -33,6 +34,7 @@ containers:
 
 # ------------------------------------------------------------------------------
 #  deploy
+#  example: deploy PROFILE=ocr.minio
 
 .PHONY: deploy
 deploy:
@@ -41,7 +43,7 @@ deploy:
 	export COMMAND_EXECUTOR_VERSION=$(shell jq '."command-executor-tag"' build-meta.jsonc); \
 	export COMMAND_EXECUTOR_ALPINE_VERSION=$(shell jq '."command-executor-alpine-tag"' build-meta.jsonc); \
 	envsubst < ./skaffold.yaml > $(TMPFOLDER)/skaffold.gen
-	skaffold dev -f $(TMPFOLDER)/skaffold.gen --port-forward --no-prune=false --cache-artifacts=false
+	skaffold dev -f $(TMPFOLDER)/skaffold.gen -p $(PROFILE) --port-forward --no-prune=false --cache-artifacts=false
 
 # ------------------------------------------------------------------------------
 #  delete

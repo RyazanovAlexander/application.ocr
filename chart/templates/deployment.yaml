@@ -42,6 +42,7 @@ spec:
           volumeMounts:
           - name: shared-data
             mountPath: /mnt/pipe
+        {{- if .Values.minio.enabled }}
         - name: executor-mc
           image: {{ if eq "string" (printf "%T" .Values.executor_mc.image) }} "{{ .Values.executor_mc.image }}" {{ else }} "{{ .Values.executor_mc.image.containerRegister }}/{{ .Values.executor_mc.image.name }}:{{ .Values.executor_mc.image.tag }}" {{ end }}
           imagePullPolicy: {{ .Values.executor_mc.imageConfig.pullPolicy }}
@@ -52,6 +53,7 @@ spec:
           volumeMounts:
           - name: shared-data
             mountPath: /mnt/pipe
+        {{- end }}
         - name: pipeline-agent
           image: {{ if eq "string" (printf "%T" .Values.pipeline_agent.image) }} "{{ .Values.pipeline_agent.image }}" {{ else }} "{{ .Values.pipeline_agent.image.containerRegister }}/{{ .Values.pipeline_agent.image.name }}:{{ .Values.pipeline_agent.image.tag }}" {{ end }}
           imagePullPolicy: {{ .Values.pipeline_agent.imageConfig.pullPolicy }}

@@ -27,6 +27,8 @@ deploy:
       namespace: ocr
       createNamespace: true
       chartPath: ./chart
+      valuesFiles:
+        - ./chart/ocr.values.yaml
       setValueTemplates:
         pipeline_agent:
           image:
@@ -53,3 +55,12 @@ portForward:
   namespace: ocr
   port: 80
   localPort: 1001
+profiles:
+- name: ocr
+- name: ocr.minio
+  deploy:
+    helm:
+      releases:
+      - name: ocr
+        valuesFiles:
+          - ./chart/ocr.minio.values.yaml

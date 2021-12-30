@@ -2,8 +2,10 @@
 
 Demo with a text recognition application.
 
-The application can be deployed in two ways:
+The app comes in two types of deployment:
 1) With two containers: wget (redundant, used for demo purposes only) and tesseract. In this scenario, an image is loaded with subsequent text recognition.
+
+![diagram1](diagrams/diagram1.png)
 
 ```yaml
 {

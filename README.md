@@ -5,7 +5,6 @@ Demo with a text recognition application.
 The application can be deployed in two ways:
 1) With two containers: wget (redundant, used for demo purposes only) and tesseract. In this scenario, an image is loaded with subsequent text recognition.
 
-## Sample request with a task
 ```yaml
 {
   "commands": [

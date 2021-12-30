@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ocr.fullname" . }}
+  labels:
+    {{- include "ocr.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.min }}
+  selector:
+    matchLabels:
+      {{- include "ocr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ocr.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes:
+      - name: shared-data
+        emptyDir: {}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: executor-tesseract
+          image: {{ if eq "string" (printf "%T" .Values.executor_tesseract.image) }} "{{ .Values.executor_tesseract.image }}" {{ else }} "{{ .Values.executor_tesseract.image.containerRegister }}/{{ .Values.executor_tesseract.image.name }}:{{ .Values.executor_tesseract.image.tag }}" {{ end }}
+          imagePullPolicy: {{ .Values.executor_tesseract.imageConfig.pullPolicy }}
+          resources:
+            {{- toYaml .Values.executor_tesseract.resources | nindent 12 }}
+          env:
+            {{- toYaml .Values.executor_tesseract.env | nindent 12 }}
+          volumeMounts:
+          - name: shared-data
+            mountPath: /mnt/pipe
+        - name: executor-wget
+          image: {{ if eq "string" (printf "%T" .Values.executor_wget.image) }} "{{ .Values.executor_wget.image }}" {{ else }} "{{ .Values.executor_wget.image.containerRegister }}/{{ .Values.executor_wget.image.name }}:{{ .Values.executor_wget.image.tag }}" {{ end }}
+          imagePullPolicy: {{ .Values.executor_wget.imageConfig.pullPolicy }}
+          resources:
+            {{- toYaml .Values.executor_wget.resources | nindent 12 }}
+          env:
+            {{- toYaml .Values.executor_wget.env | nindent 12 }}
+          volumeMounts:
+          - name: shared-data
+            mountPath: /mnt/pipe
+        {{- if .Values.minio.enabled }}
+        - name: executor-mc
+          image: {{ if eq "string" (printf "%T" .Values.executor_mc.image) }} "{{ .Values.executor_mc.image }}" {{ else }} "{{ .Values.executor_mc.image.containerRegister }}/{{ .Values.executor_mc.image.name }}:{{ .Values.executor_mc.image.tag }}" {{ end }}
+          imagePullPolicy: {{ .Values.executor_mc.imageConfig.pullPolicy }}
+          resources:
+            {{- toYaml .Values.executor_mc.resources | nindent 12 }}
+          env:
+            {{- toYaml .Values.executor_mc.env | nindent 12 }}
+          volumeMounts:
+          - name: shared-data
+            mountPath: /mnt/pipe
+        {{- end }}
+        - name: pipeline-agent
+          image: {{ if eq "string" (printf "%T" .Values.pipeline_agent.image) }} "{{ .Values.pipeline_agent.image }}" {{ else }} "{{ .Values.pipeline_agent.image.containerRegister }}/{{ .Values.pipeline_agent.image.name }}:{{ .Values.pipeline_agent.image.tag }}" {{ end }}
+          imagePullPolicy: {{ .Values.pipeline_agent.imageConfig.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            failureThreshold: 1
+            periodSeconds: 1
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: http
+            failureThreshold: 20
+            periodSeconds: 1
+          resources:
+            {{- toYaml .Values.pipeline_agent.resources | nindent 12 }}
+          env:
+            {{- toYaml .Values.pipeline_agent.env | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

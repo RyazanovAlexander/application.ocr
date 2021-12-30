@@ -1,0 +1,66 @@
+apiVersion: skaffold/v2beta10
+kind: Config
+build:
+  artifacts:
+  - image: ocr-wget
+    context: ./build/Wget/
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        COMMAND_EXECUTOR_VERSION: $COMMAND_EXECUTOR_ALPINE_VERSION
+  - image: ocr-tesseract
+    context: ./build/Tesseract/
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        COMMAND_EXECUTOR_VERSION: $COMMAND_EXECUTOR_VERSION
+  - image: ocr-mc
+    context: ./build/MinIOClient/
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        COMMAND_EXECUTOR_VERSION: $COMMAND_EXECUTOR_VERSION
+deploy:
+  helm:
+    releases:
+    - name: ocr
+      namespace: ocr
+      createNamespace: true
+      chartPath: ./chart
+      valuesFiles:
+        - ./chart/ocr.values.yaml
+      setValueTemplates:
+        pipeline_agent:
+          image:
+            tag: $PIPELINE_AGENT_VERSION
+        executor_wget:
+          imageConfig:
+            pullPolicy: IfNotPresent
+        executor_tesseract:
+          imageConfig:
+            pullPolicy: IfNotPresent
+        executor_mc:
+          imageConfig:
+            pullPolicy: IfNotPresent
+      artifactOverrides:
+        executor_wget:
+          image: ocr-wget
+        executor_tesseract:
+          image: ocr-tesseract
+        executor_mc:
+          image: ocr-mc
+portForward:
+- resourceType: deployment
+  resourceName: ocr
+  namespace: ocr
+  port: 80
+  localPort: 1001
+profiles:
+- name: ocr
+- name: ocr.minio
+  deploy:
+    helm:
+      releases:
+      - name: ocr
+        valuesFiles:
+          - ./chart/ocr.minio.values.yaml

@@ -29,6 +29,8 @@ The app comes in two types of deployment:
 
 2) With three containers: Wget, Tesseract, [Minio](https://min.io/) client. This scenario complements the previous one - in the container with the Minio client, the recognized text is stored in the Minio storage.
 
+![diagram2](diagrams/diagram2.png)
+
 ```yaml
 {
   "commands": [

@@ -3,7 +3,7 @@
 Demo with a text recognition application.
 
 The app comes in two types of deployment:
-1) With two containers: wget (redundant, used for demo purposes only) and tesseract. In this scenario, an image is loaded with subsequent text recognition.
+1) With two containers: Wget (redundant, used for demo purposes only) and [Tesseract](https://github.com/tesseract-ocr/tesseract). In this scenario, an image is loaded with subsequent text recognition.
 
 ![diagram1](diagrams/diagram1.png)
 
@@ -27,7 +27,7 @@ The app comes in two types of deployment:
 }
 ```
 
-2) With three containers: wget, tesseract, minio client. This scenario complements the previous one - in the container with the minio client, the recognized text is stored in the minio storage.
+2) With three containers: Wget, Tesseract, [Minio](https://min.io/) client. This scenario complements the previous one - in the container with the Minio client, the recognized text is stored in the Minio storage.
 
 ```yaml
 {
